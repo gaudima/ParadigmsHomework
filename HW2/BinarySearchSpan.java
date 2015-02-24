@@ -8,7 +8,6 @@ public class BinarySearchSpan {
         int l = binsearchIterLeft(a,x);
         int r = binsearchRecurRight(a, x, -1, a.length);
         System.out.println(Integer.toString(l) + " " + Integer.toString(r - l + 1));
-        System.out.println(binsearchRecurRight(a, x, -1, a.length));
     }
 
     //pre: a[i+1] <= a[i]
@@ -27,8 +26,8 @@ public class BinarySearchSpan {
         return r;
     }
 
-    //pre: a[i+1] <= a[i], l = [-1; a.length] r = [-1; a.length]
-    //post: a[R-1]<= a[R]< a[R+1]   
+    //pre: a[i+1] <= a[i], a[l] >= x, r a[r] < x
+    //post: R = max(i) : a[i] >= x    
     public static int binsearchRecurRight(int[] a, int x, int l, int r) {
         int m = l + (r - l) / 2;
         if (l >= r - 1) {
