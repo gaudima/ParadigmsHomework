@@ -10,7 +10,7 @@ public class SumLongHex {
             }
             for (int j = 0; j < spl.length; j++) {
                 if (!spl[j].isEmpty()) {
-                    spl[j]=spl[j].toLowerCase();
+                    spl[j] = spl[j].toLowerCase();
                     if (spl[j].startsWith("0x")) {
                         sum += Long.parseUnsignedLong(spl[j].substring(2, spl[j].length()), 16);
                     } else {
