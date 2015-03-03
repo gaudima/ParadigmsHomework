@@ -49,10 +49,6 @@ public class ArrayQueue {
         return (size == 0);
     }
 
-    public Object[] elements() {
-        return elements;
-    }
-
     public void clear() {
         first = 0;
         last = 0;

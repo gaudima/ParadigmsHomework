@@ -49,10 +49,6 @@ public class ArrayQueueModule {
         return (size == 0);
     }
 
-    public static Object[] elements() {
-        return elements;
-    }
-
     public static void clear() {
         first = 0;
         last = 0;
