@@ -1,10 +1,10 @@
-public class ArrayQueueModule {
-    static int size;
-    static int first;
-    static int last;
-    static Object[] elements = new Object[10];
+public class ArrayQueue {
+    private int size;
+    private int first;
+    private int last;
+    private Object[] elements = new Object[10];
 
-    static void enshureCapacity(int capacity) {
+    private void enshureCapacity(int capacity) {
         int len = elements.length;
         if (capacity > len) {
             Object[] newElements = new Object[elements.length * 2];
@@ -20,7 +20,7 @@ public class ArrayQueueModule {
         }
     }
 
-    public static void enqueue(Object element) {
+    public void enqueue(Object element) {
         assert element != null;
         enshureCapacity(size + 2);
         elements[last] = element;
@@ -29,31 +29,31 @@ public class ArrayQueueModule {
         //System.out.println(elements.length);
     }
 
-    public static Object element() {
+    public Object element() {
         assert size > 0;
         return elements[first];
     }
 
-    public static Object dequeue() {
+    public Object dequeue() {
         Object ret = element();
         first = (first + 1) % elements.length;
         size--;
         return ret;
     }
 
-    public static int size() {
+    public int size() {
         return size;
     }
 
-    public static boolean isEmpty() {
+    public boolean isEmpty() {
         return (size == 0);
     }
 
-    public static Object[] elements() {
+    public Object[] elements() {
         return elements;
     }
 
-    public static void clear() {
+    public void clear() {
         first = 0;
         last = 0;
         size = 0;
