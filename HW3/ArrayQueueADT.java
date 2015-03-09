@@ -53,6 +53,7 @@ public class ArrayQueueADT {
     public static Object dequeue(ArrayQueueADT queue) {
         assert queue != null;
         Object ret = element(queue);
+        queue.elements[queue.first] = null;
         queue.first = (queue.first + 1) % queue.elements.length;
         queue.size--;
         return ret;
@@ -124,7 +125,9 @@ public class ArrayQueueADT {
         if (queue.last < 0) {
             queue.last = queue.elements.length - 1;
         }
+        Object ret = queue.elements[queue.last];
+        queue.elements[queue.last] = null;
         queue.size--;
-        return queue.elements[queue.last];
+        return ret;
     }
 }

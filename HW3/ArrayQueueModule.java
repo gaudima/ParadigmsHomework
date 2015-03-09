@@ -46,6 +46,7 @@ public class ArrayQueueModule {
     //      size = size - 1 
     public static Object dequeue() {
         Object ret = element();
+        elements[first] = null;
         first = (first + 1) % elements.length;
         size--;
         return ret;
@@ -105,7 +106,9 @@ public class ArrayQueueModule {
         if (last < 0) {
             last = elements.length - 1;
         }
+        Object ret = elements[last];
+        elements[last] = null;
         size--;
-        return elements[last];
+        return ret;
     }
 }
