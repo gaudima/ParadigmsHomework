@@ -4,6 +4,7 @@ import java.util.function.Function;
 public class LinkedQueue extends AbstractQueue implements Queue {
     private ListNode head;
     private ListNode tail;
+    private int size;
 
     public void enqueue(Object element) {
         assert element != null;
@@ -74,10 +75,29 @@ public class LinkedQueue extends AbstractQueue implements Queue {
         return ret;
     }
 
-    public LinkedQueue filter(Predicate<Object> predicate) {
+    public int size() {
+        return size;
+    }
+
+    public boolean isEmpty() {
+        return (size == 0);
+    }
+
+    public LinkedQueue makeCopy() {
+        LinkedQueue copy = new LinkedQueue();
+        ListNode node = tail;
+        while (node != null) {
+            copy.enqueue(node.value);
+            node = node.prev;
+        }
+        copy.size = size;
+        return copy;
+    }
+
+/*    public LinkedQueue filter(Predicate<Object> predicate) {
         LinkedQueue ret = new LinkedQueue();
         ListNode node = tail;
-        while(node != null) {
+        while (node != null) {
             if (predicate.test(node.value)) {
                 ret.enqueue(node.value);
             }
@@ -89,10 +109,10 @@ public class LinkedQueue extends AbstractQueue implements Queue {
     public LinkedQueue map(Function<Object, Object> func) {
         LinkedQueue ret = new LinkedQueue();
         ListNode node = tail;
-        while(node != null) {
+        while (node != null) {
             ret.enqueue(func.apply(node.value));
             node = node.prev;
         } 
         return ret;
-    }
+    }*/
 }

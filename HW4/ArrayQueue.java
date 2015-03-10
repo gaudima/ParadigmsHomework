@@ -4,6 +4,7 @@ import java.util.function.Function;
 public class ArrayQueue extends AbstractQueue implements Queue {
     private int first;
     private int last;
+    private int size;
     private Object[] elements = new Object[10];
 
     private void enshureCapacity(int capacity) {
@@ -81,7 +82,27 @@ public class ArrayQueue extends AbstractQueue implements Queue {
         return ret;
     }
 
-    public ArrayQueue filter(Predicate<Object> predicate) {
+    public int size() {
+        return size;
+    }
+
+    public boolean isEmpty() {
+        return (size == 0);
+    }
+
+    public ArrayQueue makeCopy() {
+        ArrayQueue copy = new ArrayQueue();
+        copy.elements = new Object[elements.length];
+        for (int i = 0; i < elements.length; i++) {
+            copy.elements[i] = elements[i];
+        }
+        copy.size = size;
+        copy.first = first;
+        copy.last = last;
+        return copy;
+    }
+
+/*    public ArrayQueue filter(Predicate<Object> predicate) {
         ArrayQueue ret = new ArrayQueue();
         int index = first;
         while (last != index) {
@@ -101,5 +122,5 @@ public class ArrayQueue extends AbstractQueue implements Queue {
             index = (index + 1) % elements.length;
         }
         return ret;
-    }
+    }*/
 }
