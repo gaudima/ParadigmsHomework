@@ -1,3 +1,6 @@
+import java.util.function.Predicate;
+import java.util.function.Function;
+
 public class ArrayQueue extends AbstractQueue implements Queue {
     private int first;
     private int last;
@@ -75,6 +78,28 @@ public class ArrayQueue extends AbstractQueue implements Queue {
         Object ret = elements[last];
         elements[last] = null;
         size--;
+        return ret;
+    }
+
+    public ArrayQueue filter(Predicate<Object> predicate) {
+        ArrayQueue ret = new ArrayQueue();
+        int index = first;
+        while (last != index) {
+            if (predicate.test(elements[index])) {
+                ret.enqueue(elements[index]);
+            }
+            index = (index + 1) % elements.length;
+        }
+        return ret;
+    }
+
+    public ArrayQueue map(Function<Object, Object> func) {
+        ArrayQueue ret = new ArrayQueue();
+        int index = first;
+        while (last != index) {
+            ret.enqueue(func.apply(elements[index]));
+            index = (index + 1) % elements.length;
+        }
         return ret;
     }
 }

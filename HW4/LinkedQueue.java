@@ -1,3 +1,6 @@
+import java.util.function.Predicate;
+import java.util.function.Function;
+
 public class LinkedQueue extends AbstractQueue implements Queue {
     private ListNode head;
     private ListNode tail;
@@ -68,6 +71,28 @@ public class LinkedQueue extends AbstractQueue implements Queue {
             head = null;
         }
         size--;
+        return ret;
+    }
+
+    public LinkedQueue filter(Predicate<Object> predicate) {
+        LinkedQueue ret = new LinkedQueue();
+        ListNode node = tail;
+        while(node != null) {
+            if (predicate.test(node.value)) {
+                ret.enqueue(node.value);
+            }
+            node = node.prev;
+        }
+        return ret;
+    }
+
+    public LinkedQueue map(Function<Object, Object> func) {
+        LinkedQueue ret = new LinkedQueue();
+        ListNode node = tail;
+        while(node != null) {
+            ret.enqueue(func.apply(node.value));
+            node = node.prev;
+        } 
         return ret;
     }
 }
