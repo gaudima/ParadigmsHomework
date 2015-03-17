@@ -1,3 +1,5 @@
+package Expression;
+
 public class Divide extends BinaryOperator implements Expression {
     public Divide(Expression first, Expression second) {
         fOp = first;

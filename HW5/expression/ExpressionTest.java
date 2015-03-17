@@ -1,4 +1,6 @@
-import static expression.Util.*;
+package Expression;
+
+import static Expression.Util.*;
 /**
  * @author Georgiy Korneev (kgeorgiy@kgeorgiy.info)
  */

@@ -1,4 +1,4 @@
-package Expression;
+package TripleExpression;
 /**
  * @author Georgiy Korneev (kgeorgiy@kgeorgiy.info)
  */
