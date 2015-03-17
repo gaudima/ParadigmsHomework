@@ -5,9 +5,6 @@ public class Add extends BinaryOperator implements Expression {
     }
 
     public double evaluate(double param) {
-        rFOp = fOp.evaluate(param);
-        rSOp = sOp.evaluate(param);
-
-        return rFOp + rSOp;
+        return fOp.evaluate(param) + sOp.evaluate(param);
     }
 }
