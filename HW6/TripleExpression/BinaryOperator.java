@@ -9,9 +9,9 @@ abstract public class BinaryOperator implements TripleExpression {
         sOp = second;
     }
 
-    abstract protected double apply(double a, double b);
+    abstract protected int apply(int a, int b);
     
-    public double evaluate(double x, double y, double z) {
+    public int evaluate(int x, int y, int z) {
         return apply(fOp.evaluate(x, y, z), sOp.evaluate(x, y, z));
     }
 }

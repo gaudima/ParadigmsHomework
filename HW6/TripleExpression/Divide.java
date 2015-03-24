@@ -5,7 +5,7 @@ public class Divide extends BinaryOperator implements TripleExpression {
         super(first, second);
     }
 
-    protected double apply(double a, double b) {
+    protected int apply(int a, int b) {
         return a / b;
     }
 }

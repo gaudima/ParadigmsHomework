@@ -3,9 +3,9 @@ package TripleExpression;
 public class ExpressionParser implements Parser {
     private int index;
     private String expression;
-    private double constant;
+    private int constant;
     private char variable;
-    private enum State {number, plus, minus, asterisk, slash, lparen, rparen, variable}
+    private enum State {number, plus, minus, asterisk, mod, slash, shiftLeft, shiftRight, square, abs, lparen, rparen, variable}
     private State current;
 
     private char getNextChar() {
@@ -30,43 +30,53 @@ public class ExpressionParser implements Parser {
         char ch = getNextChar();
         if (Character.isDigit(ch)) {
             StringBuilder str = new StringBuilder();
-            while (Character.isDigit(ch) || ch == '.') {
+            while (Character.isDigit(ch)) {
                 str.append(ch);
                 ch = getNextChar();
             }
             index--;
-            constant = Double.parseDouble(str.toString());
+            constant = Integer.parseUnsignedInt(str.toString());
             current = State.number;
-            skipWhitespace();
         } else if (ch == '+') {
             current = State.plus;
-            skipWhitespace();
         } else if (ch == '-') {
             current = State.minus;
-            skipWhitespace();
         } else if (ch == '*') {
             current = State.asterisk;
-            skipWhitespace();
         } else if (ch == '/') {
             current = State.slash;
-            skipWhitespace();
         } else if (ch == '(') {
             current = State.lparen;
-            skipWhitespace();
         } else if (ch == ')') {
             current = State.rparen;
-            skipWhitespace();
         } else if (ch == 'x' || ch == 'y' || ch == 'z') {
             current = State.variable;
             variable = ch;
-            skipWhitespace();
+        } else if(index < expression.length()) {
+            if (expression.substring(index - 1, index + 2).equals("mod")) {
+                current = State.mod;
+                index += 2;
+            } else if (expression.substring(index - 1, index + 1).equals("<<")) {
+                current = State.shiftLeft;
+                index += 1;
+            } else if (expression.substring(index - 1, index + 1).equals(">>")) {
+                current = State.shiftRight;
+                index += 1;
+            } else if (expression.substring(index - 1, index + 2).equals("abs")) {
+                current = State.abs;
+                index += 2;
+            } else if (expression.substring(index - 1, index + 5).equals("square")) {
+                current = State.square;
+                index += 5;
+            }
         }
+        skipWhitespace();
+
     }
 
     private TripleExpression atomic() {
         getNext();
         TripleExpression ret;
-        System.out.println(current);
         switch (current) {
             case number:
                 ret = new Const(constant);
@@ -80,11 +90,18 @@ public class ExpressionParser implements Parser {
 
             case minus:
                 ret = new Subtract(new Const(0), atomic());
-                getNext();
+            break;
+
+            case abs:
+                ret = new Abs(atomic());
+            break;
+
+            case square:
+                ret = new Square(atomic());
             break;
 
             case lparen:
-                ret = addSubt();
+                ret = shifts();
                 if (current != State.rparen) {
                     System.out.println(") missing");
                     System.exit(0);
@@ -113,6 +130,10 @@ public class ExpressionParser implements Parser {
                     left = new Divide(left, atomic());
                 break;
 
+                case mod:
+                    left = new Mod(left, atomic());
+                break;
+
                 default:
                     return left;
             }
@@ -137,8 +158,26 @@ public class ExpressionParser implements Parser {
         }
     }
 
+    private TripleExpression shifts() {
+        TripleExpression left = addSubt();
+        while (true) {
+            switch(current) {
+                case shiftLeft:
+                    left = new ShiftLeft(left, addSubt());
+                break;
+
+                case shiftRight:
+                    left = new ShiftRight(left, addSubt());
+                break;
+
+                default:
+                    return left;
+            }
+        }
+    }
+
     public TripleExpression parse(String expression) {
         this.expression = expression;
-        return addSubt();
+        return shifts();
     }
 }

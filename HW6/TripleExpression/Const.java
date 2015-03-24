@@ -1,12 +1,12 @@
 package TripleExpression;
 
 public class Const implements TripleExpression {
-	private double value;
-    public Const(double val) {
+	private int value;
+    public Const(int val) {
         value = val;
     }
 
-    public double evaluate(double x, double y, double z) {
+    public int evaluate(int x, int y, int z) {
         return value;
     }
 }
