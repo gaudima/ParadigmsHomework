@@ -6,8 +6,11 @@ public class CheckedDivide extends BinaryOperator implements TripleExpression {
     }
 
     protected void check(int a, int b) throws Exception {
+        if(a == Integer.MIN_VALUE && b == -1) {
+            throw new OverflowException();
+        }
         if (b == 0) {
-            throw new Exception("division by zero");
+            throw new ZeroDivisionException();
         }
     }
     protected int apply(int a, int b) throws Exception {

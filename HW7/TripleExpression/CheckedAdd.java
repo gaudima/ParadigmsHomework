@@ -7,10 +7,10 @@ public class CheckedAdd extends BinaryOperator implements TripleExpression {
 
     protected void check(int a, int b) throws Exception {
         if (a > 0 && b > Integer.MAX_VALUE - a) {
-            throw new Exception("owerflow");    
+            throw new OverflowException();    
         }
         if (a < 0 &&  b < Integer.MIN_VALUE - a) {
-            throw new Exception("underflow");
+            throw new OverflowException();
         }
     }
 

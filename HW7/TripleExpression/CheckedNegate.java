@@ -7,11 +7,8 @@ public class CheckedNegate implements TripleExpression {
     }
 
     private void check(int a) throws Exception {
-        if (a < Integer.MIN_VALUE) {
-            throw new Exception("underflow");
-        }
-        if (a > Integer.MAX_VALUE) {
-            throw new Exception("overflow");
+        if (a <= Integer.MIN_VALUE) {
+            throw new OverflowException();
         }
     }
 

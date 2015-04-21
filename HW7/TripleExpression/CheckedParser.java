@@ -5,7 +5,7 @@ public class CheckedParser implements Parser {
     private String expression;
     private int constant;
     private char variable;
-    private enum State {number, plus, minus, asterisk, mod, slash, shiftLeft, shiftRight, square, abs, lparen, rparen, variable}
+    private enum State {number, plus, minus, asterisk, mod, slash, lparen, rparen, variable, abs, sqrt}
     private State current;
 
     private char getNextChar() {
@@ -21,7 +21,7 @@ public class CheckedParser implements Parser {
     private void skipWhitespace() {
         while (Character.isWhitespace(getNextChar())) {
 
-        }
+        } 
         index--;
     }
 
@@ -36,15 +36,21 @@ public class CheckedParser implements Parser {
             }
             index--;
             try {
-                constant = Integer.parseUnsignedInt(str.toString());
+                constant = Integer.parseInt(str.toString());
             } catch (NumberFormatException e) {
-                throw new Exception("overflow");
+                throw new OverflowException();
             }
             current = State.number;
         } else if (ch == '+') {
             current = State.plus;
         } else if (ch == '-') {
-            current = State.minus;
+            if (expression.length() >= index + 10 && expression.substring(index, index + 10).equals("2147483648")) {
+                constant = Integer.parseInt(expression.substring(index - 1, index + 10));
+                index += 10;
+                current = State.number;
+            } else {
+                current = State.minus;
+            }
         } else if (ch == '*') {
             current = State.asterisk;
         } else if (ch == '/') {
@@ -56,28 +62,18 @@ public class CheckedParser implements Parser {
         } else if (ch == 'x' || ch == 'y' || ch == 'z') {
             current = State.variable;
             variable = ch;
-        } else if(index < expression.length()) {
-            if (expression.substring(index - 1, index + 2).equals("mod")) {
-                current = State.mod;
-                index += 2;
-            } else if (expression.substring(index - 1, index + 1).equals("<<")) {
-                current = State.shiftLeft;
-                index += 1;
-            } else if (expression.substring(index - 1, index + 1).equals(">>")) {
-                current = State.shiftRight;
-                index += 1;
-            } else if (expression.substring(index - 1, index + 2).equals("abs")) {
-                current = State.abs;
-                index += 2;
-            } else if (expression.substring(index - 1, index + 5).equals("square")) {
-                current = State.square;
-                index += 5;
-            }
         } else {
-            throw new Exception("cant parse expression");
+            if (expression.length() >= index + 2 && expression.substring(index - 1, index + 2).equals("abs")) {
+                index += 2;
+                current = State.abs;
+            } else if (expression.length() >= index + 3 && expression.substring(index - 1, index + 3).equals("sqrt")) {
+                index += 3;
+                current = State.sqrt;
+            } else if (!Character.isWhitespace(ch)) {
+                throw new ParsingException("unexpected char: \"" + ch + "\" at index: " + (index - 1));
+            }
         }
         skipWhitespace();
-
     }
 
     private TripleExpression atomic() throws Exception {
@@ -98,25 +94,22 @@ public class CheckedParser implements Parser {
                 ret = new CheckedNegate(atomic());
             break;
 
-            /*case abs:
-                ret = new Abs(atomic());
+            case abs:
+                ret = new CheckedAbs(atomic());
             break;
 
-            case square:
-                ret = new Square(atomic());
-            break;*/
+            case sqrt:
+                ret = new CheckedSqrt(atomic());
+            break;
 
             case lparen:
                 ret = addSubt();
-                if (current != State.rparen) {
-                    throw new Exception(") missing");
-                }
                 getNext();
             break;
 
             default:
                 ret = null;
-                throw new Exception("Unrecognizable format");
+                throw new ParsingException("unrecognizable format");
         }
         return ret;
     }
@@ -179,8 +172,23 @@ public class CheckedParser implements Parser {
         }
     }*/
 
-    public TripleExpression parse(String expression) throws Exception {
-        this.expression = expression;
+    public TripleExpression parse(String expr) throws Exception {
+        expression = expr;
+        int bb = 0;
+        for (int i = 0; i < expression.length() ; i++) {
+            if (expression.charAt(i) == '(') {
+                bb++;
+            } else if(expression.charAt(i) == ')') {
+                bb--;
+            }
+            if (bb < 0) {
+                throw new ParsingException("brackets placed incorrectly");
+            }
+        }
+        if (bb != 0) {
+            throw new ParsingException("brackets placed incorrectly");
+        }
+        index = 0;
         return addSubt();
     }
 }
