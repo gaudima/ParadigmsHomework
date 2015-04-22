@@ -1,11 +1,12 @@
 package TripleExpression;
 
-public class CheckedParser implements Parser {
+public class ExpressionParser<T> implements Parser<T> {
     private int index;
     private String expression;
-    private int constant;
+    private T constant;
     private char variable;
-    private enum State {number, plus, minus, asterisk, mod, slash, lparen, rparen, variable, abs, sqrt}
+    private Operator<T> op;
+    private enum State {number, plus, minus, asterisk, mod, slash, lparen, rparen, variable}
     private State current;
 
     private char getNextChar() {
@@ -36,7 +37,7 @@ public class CheckedParser implements Parser {
             }
             index--;
             try {
-                constant = Integer.parseInt(str.toString());
+                constant = op.parse(str.toString());
             } catch (NumberFormatException e) {
                 throw new OverflowException();
             }
@@ -45,7 +46,7 @@ public class CheckedParser implements Parser {
             current = State.plus;
         } else if (ch == '-') {
             if (expression.length() >= index + 10 && expression.substring(index, index + 10).equals("2147483648")) {
-                constant = Integer.parseInt(expression.substring(index - 1, index + 10));
+                constant = op.parse(expression.substring(index - 1, index + 10));
                 index += 10;
                 current = State.number;
             } else {
@@ -62,44 +63,28 @@ public class CheckedParser implements Parser {
         } else if (ch == 'x' || ch == 'y' || ch == 'z') {
             current = State.variable;
             variable = ch;
-        } else {
-            if (expression.length() >= index + 2 && expression.substring(index - 1, index + 2).equals("abs")) {
-                index += 2;
-                current = State.abs;
-            } else if (expression.length() >= index + 3 && expression.substring(index - 1, index + 3).equals("sqrt")) {
-                index += 3;
-                current = State.sqrt;
-            } else if (!Character.isWhitespace(ch)) {
-                throw new ParsingException("unexpected char: \"" + ch + "\" at index: " + (index - 1));
-            }
+        }  else if (!Character.isWhitespace(ch)) {
+            throw new ParsingException("unexpected char: \"" + ch + "\" at index: " + (index - 1));
         }
         skipWhitespace();
     }
 
-    private TripleExpression atomic() throws Exception {
+    private TripleExpression<T> atomic() throws Exception {
         getNext();
-        TripleExpression ret;
+        TripleExpression<T> ret;
         switch (current) {
             case number:
-                ret = new Const(constant);
+                ret = new Const<T>(constant);
                 getNext();
             break;
 
             case variable:
-                ret = new Variable(Character.toString(variable));
+                ret = new Variable<T>(Character.toString(variable));
                 getNext();
             break;
 
             case minus:
-                ret = new CheckedNegate(atomic());
-            break;
-
-            case abs:
-                ret = new CheckedAbs(atomic());
-            break;
-
-            case sqrt:
-                ret = new CheckedSqrt(atomic());
+                ret = new Negate<T>(atomic(), op);
             break;
 
             case lparen:
@@ -109,26 +94,22 @@ public class CheckedParser implements Parser {
 
             default:
                 ret = null;
-                throw new ParsingException("unrecognizable symbol at position: " + index);
+                throw new ParsingException("unrecognizable format");
         }
         return ret;
     }
 
-    private TripleExpression mulDiv() throws Exception {
-        TripleExpression left = atomic();
+    private TripleExpression<T> mulDiv() throws Exception {
+        TripleExpression<T> left = atomic();
         while(true) {
             switch(current) {
                 case asterisk:
-                    left = new CheckedMultiply(left, atomic());
+                    left = new Multiply<T>(left, atomic(), op);
                 break;
 
                 case slash:
-                    left = new CheckedDivide(left, atomic());
+                    left = new Divide<T>(left, atomic(), op);
                 break;
-
-/*                case mod:
-                    left = new Mod(left, atomic());
-                break;*/
 
                 default:
                     return left;
@@ -136,16 +117,16 @@ public class CheckedParser implements Parser {
         }
     }
 
-    private TripleExpression addSubt() throws Exception {
-        TripleExpression left = mulDiv();
+    private TripleExpression<T> addSubt() throws Exception {
+        TripleExpression<T> left = mulDiv();
         while (true) {
             switch(current) {
                 case minus:
-                    left = new CheckedSubtract(left, mulDiv());
+                    left = new Subtract<T>(left, mulDiv(), op);
                 break;
 
                 case plus:
-                    left = new CheckedAdd(left, mulDiv());
+                    left = new Add<T>(left, mulDiv(), op);
                 break;
 
                 default:
@@ -154,25 +135,11 @@ public class CheckedParser implements Parser {
         }
     }
 
-/*    private TripleExpression shifts() {
-        TripleExpression left = addSubt();
-        while (true) {
-            switch(current) {
-                case shiftLeft:
-                    left = new ShiftLeft(left, addSubt());
-                break;
+    public ExpressionParser(Operator<T> op) {
+        this.op = op;
+    }
 
-                case shiftRight:
-                    left = new ShiftRight(left, addSubt());
-                break;
-
-                default:
-                    return left;
-            }
-        }
-    }*/
-
-    public TripleExpression parse(String expr) throws Exception {
+    public TripleExpression<T> parse(String expr) throws Exception {
         expression = expr;
         int bb = 0;
         for (int i = 0; i < expression.length() ; i++) {
@@ -182,11 +149,11 @@ public class CheckedParser implements Parser {
                 bb--;
             }
             if (bb < 0) {
-                throw new ParsingException("unexpected ) at position: " + i);
+                throw new ParsingException("brackets placed incorrectly");
             }
         }
         if (bb != 0) {
-            throw new ParsingException("expected ) at end");
+            throw new ParsingException("brackets placed incorrectly");
         }
         index = 0;
         return addSubt();

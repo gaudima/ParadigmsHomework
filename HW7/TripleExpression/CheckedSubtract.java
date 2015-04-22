@@ -7,10 +7,10 @@ public class CheckedSubtract extends BinaryOperator implements TripleExpression 
 
     protected void check(int a, int b) throws Exception {
         if(b > 0 && a < Integer.MIN_VALUE + b) {
-            throw new Exception("underflow");
+            throw new OverflowException();
         }
         if(b < 0 && a > Integer.MAX_VALUE + b) {
-            throw new Exception("owerflow");
+            throw new OverflowException();
         } 
     }
 

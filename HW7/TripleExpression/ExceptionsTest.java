@@ -1,5 +1,11 @@
 package TripleExpression;
 
+/*import expression.Either;
+import expression.Parser;
+import expression.ParserTest;
+import expression.TripleExpression;
+import expression.Variable;*/
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.LongBinaryOperator;
@@ -26,6 +32,18 @@ public class ExceptionsTest extends ParserTest {
 
     private int subtests = 0;
 
+    protected final List<Op<String>> parsingTest = list(
+            op("No first argument", "* y * z"),
+            op("No middle argument", "x *  * z"),
+            op("No last argument", "x * y * "),
+            op("No opening parenthesis", "x * y)"),
+            op("No closing parenthesis", "(x * y"),
+            op("Start symbol", "@x * y"),
+            op("Middle symbol", "x @ * y"),
+            op("End symbol", "x * y@"),
+            op("Constant overflow", "1000000000000000000000")
+    );
+
     public static void main(final String[] args) {
         checkAssert(ExceptionsTest.class);
         new ExceptionsTest().test();
@@ -33,6 +51,24 @@ public class ExceptionsTest extends ParserTest {
 
     @Override
     protected void test() {
+        testOverflow();
+        super.test();
+        testParsing();
+    }
+
+    private void testParsing() {
+        for (final Op<String> op : parsingTest) {
+            try {
+                new CheckedParser().parse(op.f);
+                assert false : "Successfully parsed " + op.f;
+            } catch (final Exception e) {
+                System.out.format("%-30s %s", op.name, e.getClass().getSimpleName() + ": " + e.getMessage());
+                System.out.println();
+            }
+        }
+    }
+
+    private void testOverflow() {
         final Variable vx = new Variable("x");
         final Variable vy = new Variable("y");
 
@@ -43,8 +79,6 @@ public class ExceptionsTest extends ParserTest {
         check((a, b) -> -b, "<- ignore first argument, unary -", new CheckedNegate(vy));
 
         System.out.println("OK, " + subtests + " subtests");
-
-        super.test();
     }
 
     private void check(final LongBinaryOperator f, final String op, final TripleExpression expression) {
