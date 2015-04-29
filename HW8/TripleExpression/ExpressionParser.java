@@ -6,7 +6,7 @@ public class ExpressionParser<T> implements Parser<T> {
     private T constant;
     private char variable;
     private Operator<T> op;
-    private enum State {number, plus, minus, asterisk, mod, slash, lparen, rparen, variable}
+    private enum State {number, plus, minus, asterisk, mod, slash, lparen, rparen, variable, abs, square}
     private State current;
 
     private char getNextChar() {
@@ -63,8 +63,19 @@ public class ExpressionParser<T> implements Parser<T> {
         } else if (ch == 'x' || ch == 'y' || ch == 'z') {
             current = State.variable;
             variable = ch;
-        }  else if (!Character.isWhitespace(ch)) {
-            throw new ParsingException("unexpected char: \"" + ch + "\" at index: " + (index - 1));
+        }  else {
+            if (expression.length() >= index + 2 && expression.substring(index - 1, index + 2).equals("abs")) {
+                index += 2;
+                current = State.abs;
+            } else if (expression.length() >= index + 5 && expression.substring(index - 1, index + 5).equals("square")) {
+                index += 5;
+                current = State.square;
+            } else if (expression.length() >= index + 2 && expression.substring(index - 1, index + 2).equals("mod")) {
+                index += 2;
+                current = State.mod;
+            } else if (!Character.isWhitespace(ch)) {
+                throw new ParsingException("unexpected char: \"" + ch + "\" at index: " + (index - 1));
+            }
         }
         skipWhitespace();
     }
@@ -87,6 +98,14 @@ public class ExpressionParser<T> implements Parser<T> {
                 ret = new Negate<T>(atomic(), op);
             break;
 
+            case abs:
+                ret = new Abs<T>(atomic(), op);
+            break;
+
+            case square:
+                ret = new Square<T>(atomic(), op);
+            break;
+            
             case lparen:
                 ret = addSubt();
                 getNext();
@@ -109,6 +128,10 @@ public class ExpressionParser<T> implements Parser<T> {
 
                 case slash:
                     left = new Divide<T>(left, atomic(), op);
+                break;
+
+                case mod:
+                    left = new Mod<T>(left, atomic(), op);
                 break;
 
                 default:

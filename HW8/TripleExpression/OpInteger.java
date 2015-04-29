@@ -20,7 +20,7 @@ public class OpInteger implements Operator<Integer> {
         } 
     }
 
-    protected void checkDivide(Integer a, Integer b) throws Exception {
+    private void checkDivide(Integer a, Integer b) throws Exception {
         if(a == Integer.MIN_VALUE && b == -1) {
             throw new OverflowException();
         }
@@ -28,6 +28,15 @@ public class OpInteger implements Operator<Integer> {
             throw new ZeroDivisionException();
         }
     }
+
+    /*private void checkMod(Integer a, Integer b) throws Exception {
+        if(a == Integer.MIN_VALUE && b == Integer.MIN_VALUE) {
+            throw new OverflowException();
+        }
+        if (b == 0) {
+            throw new ZeroDivisionException();
+        }
+    }*/
 
     private void checkNegate(Integer a) throws Exception {
         if (a <= Integer.MIN_VALUE) {
@@ -77,8 +86,21 @@ public class OpInteger implements Operator<Integer> {
         checkDivide(a,b);
         return a / b;
     }
+    public Integer mod(Integer a, Integer b) throws Exception {
+        return a % b;
+    }
     public Integer negate(Integer a) throws Exception {
         checkNegate(a);
         return -a;
+    }
+    public Integer abs(Integer a) throws Exception {
+        if (a < 0) {
+            return subtract(0, a);
+        } else {
+            return a;
+        }
+    }
+    public Integer square(Integer a) throws Exception {
+        return multiply(a, a);
     }
 }

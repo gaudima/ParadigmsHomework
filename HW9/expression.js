@@ -1,6 +1,8 @@
+var vars = ['x', 'y' ,'z'];
+
 function binary(left, right, apply) {
-    function evaluate(x, y, z) {
-        return apply(left(x, y, z), right(x, y, z));
+    function evaluate() {
+        return apply(left.apply(this, arguments), right.apply(this, arguments));
     }
     return evaluate;
 }
@@ -22,28 +24,26 @@ function divide(left, right) {
 }
 
 function cnst(val) {
-    function evaluate(x, y, z) {
+    function evaluate() {
         return val;
     }
     return evaluate;
 }
 
 function variable(name) {
-    function evaluate(x, y, z) {
-        if (name == 'x') {
-            return x;
-        } else if (name == 'y') {
-            return y;
-        } else {
-            return z;
+    function evaluate() {
+        for (var i = 0; i < vars.length; i++) {
+            if(vars[i] == name) {
+                return arguments[i];
+            }
         }
     }
     return evaluate;
 }
 
 function unary(operand, apply) {
-    function evaluate(x, y, z) {
-        return apply(operand(x, y, z));
+    function evaluate() {
+        return apply(operand.apply(this, arguments));
     }
     return evaluate;
 }

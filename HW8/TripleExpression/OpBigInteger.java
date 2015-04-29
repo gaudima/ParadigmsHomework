@@ -22,4 +22,14 @@ public class OpBigInteger implements Operator<BigInteger> {
     public BigInteger negate(BigInteger a) throws Exception {
         return a.negate();
     }
+    public BigInteger mod(BigInteger a, BigInteger b) throws Exception {
+        return a.remainder(b);
+    }
+    public BigInteger square(BigInteger a) {
+        return a.multiply(a);
+    }
+    public BigInteger abs(BigInteger a) {
+        return a.abs();
+    }
+
 }
