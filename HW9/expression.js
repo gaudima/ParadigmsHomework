@@ -79,7 +79,7 @@ function parse(expr) {
     var unOperators = { 'negate': negate,
                         'abs': abs,
                         'log': log
-    }
+    };
     var rpn = [];
     var tokens = expr.split(/\s/);
     for (var i = 0; i < tokens.length; i++) {
