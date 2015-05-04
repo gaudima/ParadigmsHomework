@@ -27,7 +27,7 @@ Const.prototype.toString = function() {
 
 Const.prototype.diff = function(v) {
 	return new Const(0);
-}
+};
 
 
 //////////////////////
@@ -43,11 +43,11 @@ Variable.prototype.evaluate = function(x, y, z) {
 	} else {
 		return z;
 	}
-}
+};
 
 Variable.prototype.toString = function() {
 	return this.name;
-}
+};
 
 Variable.prototype.diff = function(v) {
 	if (v == this.name) {
@@ -55,7 +55,7 @@ Variable.prototype.diff = function(v) {
 	} else {
 		return new Const(0);
 	}
-}
+};
 
 //////////////////////
 function Add(left, right) {
@@ -72,7 +72,7 @@ Add.prototype.apply = function(a, b) {
 
 Add.prototype.diff = function(v) {
 	return new Add(this.left.diff(v), this.right.diff(v));
-}
+};
 /////////////////////
 function Subtract(left, right) {
 	BinaryOperator.call(this, left, right);
@@ -88,7 +88,7 @@ Subtract.prototype.apply = function(a, b) {
 
 Subtract.prototype.diff = function(v) {
 	return new Subtract(this.left.diff(v), this.right.diff(v));
-}
+};
 
 /////////////////////
 function Multiply(left, right) {
@@ -105,7 +105,7 @@ Multiply.prototype.apply = function(a, b) {
 
 Multiply.prototype.diff = function(v) {
 	return new Add(new Multiply(this.left, this.right.diff(v)), new Multiply(this.left.diff(v), this.right));
-}
+};
 
 /////////////////////
 function Divide(left, right) {
@@ -126,7 +126,7 @@ Divide.prototype.diff = function(v) {
 			new Multiply(this.left.diff(v), this.right), 
 			new Multiply(this.left, this.right.diff(v))), 
 		new Multiply(this.right, this.right));
-}
+};
 
 
 //////////////////////
@@ -136,11 +136,11 @@ function UnaryOperator(operand) {
 
 UnaryOperator.prototype.evaluate = function(x, y, z) {
 	return this.apply(this.operand.evaluate(x, y, z));
-}
+};
 
 UnaryOperator.prototype.toString = function() {
 	return this.operand.toString()+ ' ' + this.operator;
-}
+};
 
 
 //////////////////////
@@ -157,7 +157,7 @@ Negate.prototype.apply = function(a) {
 
 Negate.prototype.diff = function(v) {
 	return new Negate(this.operand.diff(v));
-}
+};
 
 
 //////////////////////
@@ -170,10 +170,10 @@ Sin.prototype = Object.create(UnaryOperator.prototype);
 Sin.prototype.constructor = Sin;
 Sin.prototype.apply = function(a) {
 	return Math.sin(a);
-}
+};
 Sin.prototype.diff = function(v) {
 	return new Multiply(new Cos(this.operand), this.operand.diff(v));
-}
+};
 
 
 ////
@@ -186,10 +186,10 @@ Cos.prototype = Object.create(UnaryOperator.prototype);
 Cos.prototype.constructor = Cos;
 Cos.prototype.apply = function(a) {
 	return Math.cos(a);
-}
+};
 Cos.prototype.diff = function(v) {
 	return new Multiply(new Negate(new Sin(this.operand)), this.operand.diff(v));
-}
+};
 
 function parse(expr) {
     var binOperators = { '+': Add,
@@ -200,7 +200,7 @@ function parse(expr) {
     var unOperators = { 'negate': Negate,
                         'sin': Sin,
                         'cos': Cos
-    }
+    };
     var rpn = [];
     var tokens = expr.split(/\s/);
     for (var i = 0; i < tokens.length; i++) {
