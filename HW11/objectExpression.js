@@ -207,6 +207,39 @@ Cos.prototype.diff = function(v) {
 	return new Multiply(new Negate(new Sin(this.operand)), this.operand.diff(v));
 };
 
+
+////
+function Exp(operand) {
+	UnaryOperator.call(this, operand);
+	this.operator = 'exp';
+}
+
+Exp.prototype = Object.create(UnaryOperator.prototype);
+Exp.prototype.constructor = Exp;
+Exp.prototype.apply = function(a) {
+	return Math.exp(a);
+};
+Exp.prototype.diff = function(v) {
+	return new Multiply(new Exp(this.operand), this.operand.diff(v));
+};
+
+
+////
+function ArcTan(operand) {
+	UnaryOperator.call(this, operand);
+	this.operator = 'atan';
+}
+
+ArcTan.prototype = Object.create(UnaryOperator.prototype);
+ArcTan.prototype.constructor = ArcTan;
+ArcTan.prototype.apply = function(a) {
+	return Math.atan(a);
+};
+ArcTan.prototype.diff = function(v) {
+	return new Multiply(this.operand.diff(v), new Divide(new Const(1), new Add(new Const(1), new Multiply(this.operand, this.operand))));
+};
+
+
 function parse(expr) {
     var binOperators = { '+': Add,
                          '-': Subtract,
@@ -215,7 +248,9 @@ function parse(expr) {
     };
     var unOperators = { 'negate': Negate,
                         'sin': Sin,
-                        'cos': Cos
+                        'cos': Cos,
+                        'exp': Exp,
+                        'atan': ArcTan
     };
     var rpn = [];
     var tokens = expr.split(/\s/);
@@ -259,7 +294,9 @@ function parsePrefix(expr) {
     };
     var unOperators = { 'negate': Negate,
                         'sin': Sin,
-                        'cos': Cos
+                        'cos': Cos,
+                        'exp': Exp,
+                        'atan': ArcTan
     };
 	expr = expr.trim();
 	var tokens = expr.split(/\s+/);
@@ -284,7 +321,7 @@ function parsePrefix(expr) {
 	
 	var result = parseRecur();
 	if (tokens.length > 0) {
-		throw new Error('one of operators missing');
+		throw new Error('operator missing');
 	}
 	return result;
 }
