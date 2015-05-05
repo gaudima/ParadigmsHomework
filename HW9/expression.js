@@ -90,7 +90,7 @@ function parse(expr) {
             rpn.push(binOperators[token](a,b));
         } else if (token in unOperators) {
             rpn.push(unOperators[token](rpn.pop()));
-        } else if (/^x$|^y$|^z$/.test(token)) {
+        } else if (vars.indexOf(token)!=-1) {
             rpn.push(variable(token));
         } else if (/^-?[0-9]+$/.test(token)) {
             rpn.push(cnst(parseInt(token)));
