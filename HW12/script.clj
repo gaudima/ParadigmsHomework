@@ -1,6 +1,6 @@
 (defn operator [appfn args] 
 	(fn [vars] 
-		(println args)))
+		(appfn (map (fn [a] (a vars)) args))))
 
 (defn add [& args]
 	(operator (fn [a] (reduce + a)) args))
@@ -21,40 +21,38 @@
 	(fn [vars]
 		(get vars nam 0)))
 
-(defn get-brak [s] 
-	(loop [ind 0 lastind 0 bb 0 ret []]
-		(if (>= ind (.length s))
-			(if (= lastind ind) ret (conj ret (subs s lastind ind)))
-			(if (= (get s ind) \()
-				(recur (inc ind) lastind (inc bb) ret)
-				(if (= (get s ind) \))
-					(recur (inc ind) lastind (dec bb) ret)
-					(if (and (= bb 0) (= (get s ind) \space))
-						(recur (inc ind) (inc ind) bb (if (= lastind ind) ret (conj ret (subs s lastind ind))))
-						(recur (inc ind) lastind bb ret)))))))
+(defn parseFunction [expression]
+	(let [operators {"+" add "-" subtract "*" multiply "/" divide}
+		  get-tok (fn [s]
+		  	(loop [ind 0 bb 0]
+				(if (= (str (get s ind)) "(")
+					(recur (inc ind) (inc bb))
+					(if (= (str (get s ind)) ")")
+						(recur (inc ind) (dec bb))
+						(if (or (and (= bb 0) (re-matches #"\s" (str (get s ind)))) (>= ind (.length s)))
+							(list (subs s 0 ind) (nth (re-find #"\s*(.*)\s*" (subs s ind (.length s))) 1))
+							(recur (inc ind) bb))))))
+		  expr (get-tok expression)]
 
-(defn parseFunction [expr]
-	(do (println (str "expr " expr))
-	(let [operators {"+" add "-" subtract "*" multiply "/" divide}]
-		(let [exp (str (nth expr 0))]
-			(do (println exp)
-			(if-let [subexpr (re-matches #"\((.*)\)" exp)]
-				(parseFunction (get-brak (get subexpr 1)))
-				(if (or (re-matches #"-?[0-9]+" exp) (re-matches #"\[a-zA-z]+" exp))
-					(map (fn [a] (if (re-matches #"-?[0-9]+" a) (const (read-string a)) (variable a))) expr)
-					(if (contains? operators exp)
-						(apply (get operators exp) (parseFunction (rest expr)))
-						nil))))))))
+		(if (contains? operators (first expr))
+			(apply (get operators (first expr))
+				(loop [exp (second expr) ret []]
+					(let [ex (get-tok exp)]
+						(if (= (first ex) "")
+							ret
+							(if-let [subex (re-matches #"\((.+)\)" (first ex))]
+								(recur (second ex) (conj ret (parseFunction (nth subex 1))))
+								(if (re-matches #"-?[0-9]+\.?[0-9]*" (first ex))
+									(recur (second ex) (conj ret (const (read-string (first ex)))))
+									(recur (second ex) (conj ret (variable (first ex))))
+								)
+							)
+						)
+					)
+				)
+			)
+			(if-let [subex (re-matches #"\((.+)\)" (first expr))]
+				(parseFunction (nth subex 1))
+				nil))))
 
-; (defn parseFunction [expr] 
-; 	(let [get-token (fn [exp] 
-; 			(re-find #"^(\(|\)|-?[0-9]+|\+|\-|\*|\/)\s*(.*)$" exp))
-; 		  number (fn [toks]
-; 		  	(if (re-match #"-?[0-9]+" (get toks 1))
-; 		  		(const (read-str))))]
-; 				nil
-; 				nil)
-; 		  )]
-; 		(get-token expr)))
-
-(println (parseFunction (get-brak "+ (+ 1 2 5) 5")))
+(println ((parseFunction "(/ (* 2.0 (+ 1 2 3)) x)") {"x" 5}))
