@@ -1,3 +1,4 @@
+(use 'clojure.string)
 (defn operator [appfn args] 
   (fn [vars] 
     (appfn (map (fn [a] (a vars)) args))))
@@ -12,16 +13,22 @@
   (operator (fn [a] (reduce * a)) args))
 
 (defn divide [& args]
-  (operator (fn [a] (reduce / a)) args))
+  (operator (fn [a] (try
+                      (reduce / a)
+                      (catch Exception e (/ 1.0 0.0)))) args))
 
-(defn const [v]
-  (fn [vars] v))
+(defn negate [arg]
+  (fn [vars] (- (arg vars))))
+
+(defn constant [v]
+  (fn [vars] (double v)))
 
 (defn variable [nam]
-  (fn [vars] (get vars nam 0)))
+  (fn [vars] (double (get vars nam))))
 
 (defn parseFunction [expression]
   (let [operators {"+" add "-" subtract "*" multiply "/" divide}
+        un-operators {"negate" negate}
         get-tok (fn [s]
                   (loop [ind 0 bb 0]
                     (if (= (str (get s ind)) "(")
@@ -31,20 +38,20 @@
                         (if (or (and (= bb 0) (re-matches #"\s" (str (get s ind)))) (>= ind (.length s)))
                           (list (subs s 0 ind) (nth (re-find #"\s*(.*)\s*" (subs s ind (.length s))) 1))
                           (recur (inc ind) bb))))))
-        expr (get-tok expression)]
+        expr (get-tok (trim expression))]
     (if (contains? operators (first expr))
       (apply (get operators (first expr))
              (loop [exp (second expr) ret []]
-               (let [ex (get-tok exp)]
+               (let [ex (get-tok exp)]   
                  (if (= (first ex) "")
                    ret
-                   (if-let [subex (re-matches #"\((.+)\)" (first ex))]
-                     (recur (second ex) (conj ret (parseFunction (nth subex 1))))
-                     (if (re-matches #"-?[0-9]+\.?[0-9]*" (first ex))
-                       (recur (second ex) (conj ret (const (read-string (first ex)))))
-                       (recur (second ex) (conj ret (variable (first ex))))))))))
-      (if-let [subex (re-matches #"\((.+)\)" (first expr))]
-        (parseFunction (nth subex 1))
-        nil))))
+                   (recur (second ex) (conj ret (parseFunction (first ex))))))))
+      (if (contains? un-operators (first expr))
+        ((get un-operators (first expr)) (parseFunction (second expr)))
+        (if-let [subex (re-matches #"\((.+)\)" (first expr))]
+          (parseFunction (nth subex 1))
+          (if (re-matches #"-?[0-9]+\.?[0-9]*" (first expr))
+            (constant (read-string (first expr)))
+            (variable (first expr))))))))
 
-(println ((parseFunction "(/ (* 2.0 (+ 1 2 3)) x)") {"x" 5}))
+(println ((divide (constant 2.0) (constant 0.0)){}))
