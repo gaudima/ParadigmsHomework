@@ -20,6 +20,12 @@
 (defn negate [arg]
   (fn [vars] (- (arg vars))))
 
+(defn sin [arg]
+  (fn [vars] (Math/sin (arg vars))))
+
+(defn cos [arg]
+  (fn [vars] (Math/cos (arg vars))))
+
 (defn constant [v]
   (fn [vars] (double v)))
 
@@ -38,7 +44,7 @@
 
 (defn parseFunction [expression]
   (let [operators {"+" add "-" subtract "*" multiply "/" divide}
-        un-operators {"negate" negate}
+        un-operators {"negate" negate "sin" sin "cos" cos}
         get-tok (fn [s]
                   (loop [ind 0 bb 0]
                     (if (= (str (get s ind)) "(")
