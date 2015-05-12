@@ -12,14 +12,15 @@ BinaryOperator.prototype.toString = function() {
 };
 
 BinaryOperator.prototype.simplify = function() {
-	//println(this.toString());
-	//console.log((this.create().toString() === this.create().simplify().toString()));
 	if (this.left instanceof Const && this.right instanceof Const) {
 		return new Const(this.evaluate(0,0,0));
-	} else if(this.toString() == this.create().toString()){
-		return this.create();
 	} else {
-		return this.create().simplify();
+		var simpl = new this.constructor(this.left.simplify(), this.right.simplify());
+		if(this.toString() == simpl.toString()){
+			return simpl;
+		} else {
+			return simpl.simplify();
+		}
 	}
 };
 
@@ -100,10 +101,6 @@ Add.prototype.simplify = function() {
 	}
 };
 
-Add.prototype.create = function() {
-	return new Add(this.left.simplify(), this.right.simplify());
-};
-
 Add.prototype.diff = function(v) {
 	return new Add(this.left.diff(v), this.right.diff(v));
 };
@@ -130,10 +127,6 @@ Subtract.prototype.simplify = function() {
 		return ret;
 	}
 }
-
-Subtract.prototype.create = function() {
-	return new Subtract(this.left.simplify(), this.right.simplify());
-};
 
 Subtract.prototype.diff = function(v) {
 	return new Subtract(this.left.diff(v), this.right.diff(v));
@@ -163,10 +156,6 @@ Multiply.prototype.simplify = function() {
 	} else {
 		return ret;
 	}
-}
-
-Multiply.prototype.create = function() {
-	return new Multiply(this.left.simplify(), this.right.simplify());
 };
 
 Multiply.prototype.diff = function(v) {
@@ -195,10 +184,6 @@ Divide.prototype.simplify = function() {
 	} else {
 		return ret;
 	}
-}
-
-Divide.prototype.create = function() {
-	return new Divide(this.left.simplify(), this.right.simplify());
 };
 
 Divide.prototype.diff = function(v) {
@@ -227,10 +212,13 @@ UnaryOperator.prototype.simplify = function() {
 	//console.log('lol');
 	if (this.operand instanceof Const) {
 		return new Const(this.evaluate(0,0,0));
-	} else if (this.toString() == this.create().toString() ) {
-		return  this.create();
 	} else {
-		return this.create().simplify();
+		var simpl = new this.constructor(this.operand.simplify()); 
+		if (this.toString() == simpl.toString() ) {
+			return simpl;
+		} else {
+			return simpl.simplify();
+		}
 	}
 }
 
@@ -247,10 +235,6 @@ Negate.prototype.apply = function(a) {
 	return -a;
 };
 
-Negate.prototype.create = function() {
-	return new Negate(this.operand.simplify());
-};
-
 Negate.prototype.diff = function(v) {
 	return new Negate(this.operand.diff(v));
 };
@@ -264,12 +248,9 @@ function Sin(operand) {
 
 Sin.prototype = Object.create(UnaryOperator.prototype);
 Sin.prototype.constructor = Sin;
+
 Sin.prototype.apply = function(a) {
 	return Math.sin(a);
-};
-
-Sin.prototype.create = function() {
-	return new Sin(this.operand.simplify());
 };
 
 Sin.prototype.diff = function(v) {
@@ -285,12 +266,9 @@ function Cos(operand) {
 
 Cos.prototype = Object.create(UnaryOperator.prototype);
 Cos.prototype.constructor = Cos;
+
 Cos.prototype.apply = function(a) {
 	return Math.cos(a);
-};
-
-Cos.prototype.create = function() {
-	return new Cos(this.operand.simplify());
 };
 
 Cos.prototype.diff = function(v) {

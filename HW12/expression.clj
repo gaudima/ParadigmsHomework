@@ -26,6 +26,16 @@
 (defn variable [nam]
   (fn [vars] (double (get vars nam))))
 
+(defn parseFunction2 [expression]
+  (let [operators [["+ " "add "] ["- " "subtract "] ["* " "multiply "] ["/ " "divide "]]]
+    (load-string 
+      (replace (loop [ind 0 expr (replace expression #"(-?[0-9]+\.?[0-9]*)" "(constant $1)")]
+                 (if (>= ind (count operators))
+                   expr
+                   (recur (inc ind) (replace expr (first (nth operators ind)) (last (nth operators ind))))))
+               #"(\s+|^)(x|y|z)"
+               " (variable \"$2\")"))))
+
 (defn parseFunction [expression]
   (let [operators {"+" add "-" subtract "*" multiply "/" divide}
         un-operators {"negate" negate}
@@ -54,4 +64,4 @@
             (constant (read-string (first expr)))
             (variable (first expr))))))))
 
-(println ((divide (constant 2.0) (constant 0.0)){}))
+;(println (parseFunction "(+ -1533705053.0)"))
