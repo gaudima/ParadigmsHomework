@@ -32,42 +32,15 @@
 (defn variable [nam]
   (fn [vars] (double (get vars nam))))
 
-(defn parseFunction2 [expression]
-  (let [operators [["+ " "add "] ["- " "subtract "] ["* " "multiply "] ["/ " "divide "]]]
-    (load-string 
-      (replace (loop [ind 0 expr (replace expression #"(-?[0-9]+\.?[0-9]*)" "(constant $1)")]
-                 (if (>= ind (count operators))
-                   expr
-                   (recur (inc ind) (replace expr (first (nth operators ind)) (last (nth operators ind))))))
-               #"(\s+|^)(x|y|z)"
-               " (variable \"$2\")"))))
-
 (defn parseFunction [expression]
-  (let [operators {"+" add "-" subtract "*" multiply "/" divide}
-        un-operators {"negate" negate "sin" sin "cos" cos}
-        get-tok (fn [s]
-                  (loop [ind 0 bb 0]
-                    (if (= (str (get s ind)) "(")
-                      (recur (inc ind) (inc bb))
-                      (if (= (str (get s ind)) ")")
-                        (recur (inc ind) (dec bb))
-                        (if (or (and (= bb 0) (re-matches #"\s" (str (get s ind)))) (>= ind (.length s)))
-                          (list (subs s 0 ind) (nth (re-find #"\s*(.*)\s*" (subs s ind (.length s))) 1))
-                          (recur (inc ind) bb))))))
-        expr (get-tok (trim expression))]
-    (if (contains? operators (first expr))
-      (apply (get operators (first expr))
-             (loop [exp (second expr) ret []]
-               (let [ex (get-tok exp)]   
-                 (if (= (first ex) "")
-                   ret
-                   (recur (second ex) (conj ret (parseFunction (first ex))))))))
-      (if (contains? un-operators (first expr))
-        ((get un-operators (first expr)) (parseFunction (second expr)))
-        (if-let [subex (re-matches #"\((.+)\)" (first expr))]
-          (parseFunction (nth subex 1))
-          (if (re-matches #"-?[0-9]+\.?[0-9]*" (first expr))
-            (constant (read-string (first expr)))
-            (variable (first expr))))))))
-
-;(println (parseFunction "(+ -1533705053.0)"))
+  (let [bin-op {'+ add '- subtract '* multiply '/ divide}
+        un-op {'sin sin 'cos cos 'negate negate}]
+    (cond
+      (string? expression) (parseFunction (read-string expression))
+      (seq? expression)
+        (let [exp (first expression)]
+            (cond
+              (contains? bin-op exp) (apply (get bin-op exp) (map parseFunction (rest expression)))
+              (contains? un-op exp) ((get un-op exp) (parseFunction (second expression)))))
+      (or (integer? expression) (float? expression)) (constant expression)
+      (symbol? expression) (variable (str expression)))))
