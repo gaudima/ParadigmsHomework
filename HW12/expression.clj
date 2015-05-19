@@ -1,4 +1,3 @@
-(use 'clojure.string)
 (defn operator [appfn args] 
   (fn [vars] 
     (appfn (map (fn [a] (a vars)) args))))
